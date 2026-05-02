@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACMS-RH — Système de Gestion du Personnel</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0E0F13;--bg2:#13151A;--bg3:#1A1D24;--bg4:#20242E;
+  --surface:#1E2230;--surface2:#252A38;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --red:#E8473F;--red-bg:rgba(232,71,63,0.12);
+  --amber:#F59E0B;--amber-bg:rgba(245,158,11,0.12);
+  --green:#10B981;--green-bg:rgba(16,185,129,0.12);
+  --blue:#3B82F6;--blue-bg:rgba(59,130,246,0.12);
+  --purple:#8B5CF6;--purple-bg:rgba(139,92,246,0.12);
+  --cyan:#06B6D4;--cyan-bg:rgba(6,182,212,0.12);
+  --text:#F1F3F9;--text2:#9BA3BF;--text3:#5C6480;
+  --accent:#E8473F;
+  --serif:'Playfair Display',Georgia,serif;
+  --sans:'Plus Jakarta Sans',system-ui,sans-serif;
+  --shadow:0 4px 24px rgba(0,0,0,0.3);
+  --shadow2:0 8px 48px rgba(0,0,0,0.5);
+}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.login-art{position:absolute;inset:0;overflow:hidden}
+.login-art::before{content:'';position:absolute;top:-20%;right:-10%;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(232,71,63,0.15) 0%,transparent 65%)}
+.login-art::after{content:'';position:absolute;bottom:-20%;left:-10%;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,0.1) 0%,transparent 65%)}
+.login-lines{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);background-size:40px 40px}
+.login-card{position:relative;z-index:2;background:var(--surface);border:1px solid var(--border2);border-radius:24px;padding:2.5rem;width:420px;box-shadow:var(--shadow2)}
+.login-brand{display:flex;align-items:center;gap:14px;margin-bottom:2rem}
+.login-brand-icon{width:52px;height:52px;background:var(--red);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 30px rgba(232,71,63,0.4);flex-shrink:0}
+.login-brand-name{font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--text);line-height:1}
+.login-brand-sub{font-size:0.72rem;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-top:3px}
+.login-title{font-family:var(--serif);font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:0.3rem}
+.login-sub{font-size:0.82rem;color:var(--text3);margin-bottom:1.75rem}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem}
+.role-btn{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center;cursor:pointer;transition:all 0.2s;font-family:var(--sans)}
+.role-btn .role-icon{font-size:1.3rem;display:block;margin-bottom:4px}
+.role-btn .role-name{font-size:0.75rem;font-weight:600;color:var(--text2);letter-spacing:0.03em}
+.role-btn.active{background:var(--red-bg);border-color:rgba(232,71,63,0.4);box-shadow:0 0 16px rgba(232,71,63,0.15)}
+.role-btn.active .role-name{color:var(--red)}
+.lbl{font-size:0.72rem;font-weight:600;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;margin-top:1rem;display:block}
+.linput{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-family:var(--sans);font-size:0.9rem;outline:none;transition:border-color 0.2s}
+.linput:focus{border-color:var(--red)}
+.btn-login{width:100%;margin-top:1.5rem;background:var(--red);border:none;color:#fff;font-family:var(--serif);font-size:1rem;font-weight:700;padding:13px;border-radius:12px;cursor:pointer;letter-spacing:0.02em;transition:all 0.2s;box-shadow:0 4px 20px rgba(232,71,63,0.35)}
+.btn-login:hover{opacity:0.9;transform:translateY(-1px)}
+
+/* ── APP SHELL ── */
+#app{display:none;height:100vh;flex-direction:column}
+#app.on{display:flex}
+
+/* ── TOPBAR ── */
+.topbar{height:58px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.25rem;gap:12px;flex-shrink:0;z-index:50}
+.topbar-logo{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:1.05rem;font-weight:800;color:var(--text);flex-shrink:0}
+.topbar-logo-dot{width:30px;height:30px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1rem;box-shadow:0 0 16px rgba(232,71,63,0.3)}
+.topbar-pill{background:var(--bg3);border:1px solid var(--border2);border-radius:100px;padding:4px 14px;font-size:0.72rem;color:var(--text2);display:flex;align-items:center;gap:6px}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.alert-bell{position:relative;cursor:pointer;font-size:1.1rem;padding:6px;border-radius:8px;transition:background 0.15s}
+.alert-bell:hover{background:var(--bg3)}
+.alert-count{position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;font-size:0.62rem;font-weight:700;padding:1px 5px;border-radius:100px;border:2px solid var(--bg2)}
+.topbar-user{display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 10px;border-radius:10px;transition:background 0.15s}
+.topbar-user:hover{background:var(--bg3)}
+.u-avatar{width:32px;height:32px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#fff;flex-shrink:0}
+.u-name{font-size:0.82rem;font-weight:600;color:var(--text);line-height:1}
+.u-role{font-size:0.68rem;color:var(--text3)}
+.btn-out{background:none;border:1px solid var(--border2);border-radius:8px;padding:5px 12px;font-family:var(--sans);font-size:0.76rem;color:var(--text3);cursor:pointer;transition:all 0.15s}
+.btn-out:hover{border-color:var(--red);color:var(--red)}
+
+/* ── LAYOUT ── */
+.shell{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:228px;background:var(--bg2);border-right:1px solid var(--border);flex-shrink:0;overflow-y:auto;padding:1rem 0.75rem;display:flex;flex-direction:column;gap:2px}
+.nav-grp{font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);font-weight:700;padding:0.9rem 0.75rem 0.35rem}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;font-size:0.85rem;color:var(--text2);cursor:pointer;border:none;background:none;font-family:var(--sans);width:100%;text-align:left;transition:all 0.15s;position:relative}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--red-bg);color:var(--red);font-weight:600}
+.nav-icon{width:20px;text-align:center;font-size:0.95rem;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:0.6rem;font-weight:700;padding:2px 6px;border-radius:100px}
+.nav-badge.amber{background:var(--amber)}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;background:var(--bg);padding:0}
+.page{display:none;padding:1.75rem;animation:pgIn 0.22s ease}
+.page.active{display:block}
+@keyframes pgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.75rem;gap:1rem;flex-wrap:wrap}
+.ph-left .ph-tag{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);font-weight:700;margin-bottom:4px}
+.ph-left h2{font-family:var(--serif);font-size:1.6rem;font-weight:800;color:var(--text);line-height:1.1}
+.ph-left .ph-sub{font-size:0.82rem;color:var(--text3);margin-top:4px}
+.ph-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ── BUTTONS ── */
+.btn-p{background:var(--red);border:none;color:#fff;font-family:var(--sans);font-size:0.82rem;font-weight:600;padding:9px 18px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s;box-shadow:0 2px 12px rgba(232,71,63,0.3)}
+.btn-p:hover{opacity:0.88;transform:translateY(-1px)}
+.btn-s{background:var(--surface);border:1px solid var(--border2);color:var(--text2);font-family:var(--sans);font-size:0.82rem;padding:9px 16px;border-radius:9px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all 0.15s}
+.btn-s:hover{border-color:var(--red);color:var(--red)}
+.btn-sm{padding:5px 10px;font-size:0.74rem;border-radius:7px}
+
+/* ── STAT CARDS ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem;margin-bottom:1.5rem}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.25rem 1.5rem;position:relative;overflow:hidden;transition:border-color 0.2s}
+.kpi:hover{border-color:var(--border2)}
+.kpi::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--kc,var(--red))}
+.kpi-icon{font-size:1.6rem;margin-bottom:0.5rem}
+.kpi-label{font-size:0.7rem;color:var(--text3);text-transform:uppercase;letter-spacing:0.08em;font-weight:600}
+.kpi-val{font-family:var(--serif);font-size:2rem;font-weight:800;color:var(--text);line-height:1;margin-top:4px}
+.kpi-sub{font-size:0.74rem;color:var(--text3);margin-top:4px}
+.kpi-trend{font-size:0.74rem;font-weight:600;margin-top:6px;display:flex;align-items:center;gap:4px}
+.up{color:var(--green)}.down{color:var(--red)}.warn{color:var(--amber)}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin-bottom:1rem}
+.card-hd{font-family:var(--serif);font-size:1rem;font-weight:700;color:var(--text);margin-bottom:1rem;display:flex;align-items:center;gap:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;background:var(--surface)}
+thead th{background:var(--bg3);padding:10px 14px;text-align:left;font-size:0.68rem;font-weight:700;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap}
+tbody td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:0.83rem;color:var(--text2)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--bg3)}
+.ttbar{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.si{background:var(--surface);border:1px solid var(--border2);border-radius:9px;padding:8px 14px;font-family:var(--sans);font-size:0.83rem;color:var(--text);outline:none;transition:border-color 0.2s;flex:1;min-width:180px}
+.si:focus{border-color:var(--red)}
+.fsel{background:var(--surface);border:1px solid var(--border2);border-radius:9px;padding:8px 12px;font-family:var(--sans);font-size:0.83rem;color:var(--text2);outline:none;cursor:pointer}
+.fsel option{background:var(--bg3)}
+
+/* ── BADGES ── */
+.b{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:0.7rem;font-weight:700}
+.bg{background:var(--green-bg);color:var(--green);border:1px solid rgba(16,185,129,0.2)}
+.br{background:var(--red-bg);color:var(--red);border:1px solid rgba(232,71,63,0.2)}
+.ba{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(245,158,11,0.2)}
+.bb{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(59,130,246,0.2)}
+.bp{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(139,92,246,0.2)}
+.bc{background:var(--cyan-bg);color:var(--cyan);border:1px solid rgba(6,182,212,0.2)}
+
+/* ── PROGRESS ── */
+.prog{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.prog-f{height:100%;border-radius:3px;transition:width 0.8s ease}
+
+/* ── FORM ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:600px){.fg{grid-template-columns:1fr}}
+.fgrp{display:flex;flex-direction:column;gap:5px}
+.fgrp.full{grid-column:1/-1}
+.fl{font-size:0.7rem;font-weight:700;color:var(--text3);letter-spacing:0.07em;text-transform:uppercase}
+.fi,.fs{background:var(--bg3);border:1px solid var(--border2);border-radius:9px;padding:10px 13px;font-family:var(--sans);font-size:0.88rem;color:var(--text);outline:none;transition:border-color 0.2s;width:100%}
+.fi:focus,.fs:focus{border-color:var(--red);background:var(--bg4)}
+.fs option{background:var(--bg3)}
+.fa{display:flex;gap:8px;margin-top:1.5rem;justify-content:flex-end}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(6px)}
+.mo.open{display:flex}
+.mbox{background:var(--surface);border-radius:18px;padding:2rem;width:100%;max-width:580px;box-shadow:var(--shadow2);animation:mIn 0.2s ease;max-height:90vh;overflow-y:auto;border:1px solid var(--border2)}
+@keyframes mIn{from{opacity:0;transform:scale(0.94)}to{opacity:1;transform:scale(1)}}
+.mhd{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.mtitle{font-family:var(--serif);font-size:1.15rem;font-weight:800;color:var(--text)}
+.mclose{background:none;border:none;font-size:1.1rem;cursor:pointer;color:var(--text3);padding:4px 8px;border-radius:7px;transition:all 0.15s}
+.mclose:hover{background:var(--bg3);color:var(--text)}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:3px;background:var(--bg3);border-radius:10px;padding:4px;margin-bottom:1.5rem;width:fit-content;flex-wrap:wrap}
+.tab{padding:7px 15px;border-radius:7px;font-size:0.8rem;font-weight:500;color:var(--text3);cursor:pointer;border:none;background:none;font-family:var(--sans);transition:all 0.15s;white-space:nowrap}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,0.2)}
+
+/* ── ALERT CARDS ── */
+.alert-card{border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:12px;margin-bottom:0.75rem;border:1px solid transparent}
+.alert-card.crit{background:var(--red-bg);border-color:rgba(232,71,63,0.25)}
+.alert-card.warn{background:var(--amber-bg);border-color:rgba(245,158,11,0.2)}
+.alert-card.info{background:var(--blue-bg);border-color:rgba(59,130,246,0.2)}
+.alert-card.ok{background:var(--green-bg);border-color:rgba(16,185,129,0.2)}
+.alert-icon{font-size:1.3rem;flex-shrink:0;margin-top:1px}
+.alert-body .alert-title{font-weight:700;font-size:0.86rem;color:var(--text)}
+.alert-body .alert-msg{font-size:0.8rem;color:var(--text2);margin-top:2px}
+.alert-body .alert-time{font-size:0.72rem;color:var(--text3);margin-top:4px}
+
+/* ── RADAR / PERF ── */
+.perf-bar{display:flex;flex-direction:column;gap:10px;margin-top:0.5rem}
+.perf-row{display:flex;align-items:center;gap:10px}
+.perf-label{font-size:0.78rem;color:var(--text2);width:160px;flex-shrink:0}
+.perf-track{flex:1;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.perf-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.perf-val{font-size:0.76rem;font-weight:700;color:var(--text);width:30px;text-align:right;flex-shrink:0}
+
+/* ── TIMELINE ── */
+.timeline{position:relative;padding-left:2rem}
+.timeline::before{content:'';position:absolute;left:7px;top:8px;bottom:8px;width:1px;background:var(--border2)}
+.tl-item{position:relative;margin-bottom:1.5rem}
+.tl-dot{position:absolute;left:-2rem;top:5px;width:14px;height:14px;border-radius:50%;background:var(--bg);border:2px solid var(--red);z-index:1}
+.tl-dot.filled{background:var(--red)}
+.tl-date{font-size:0.7rem;color:var(--text3);margin-bottom:2px}
+.tl-title{font-size:0.86rem;font-weight:600;color:var(--text)}
+.tl-sub{font-size:0.78rem;color:var(--text3);margin-top:2px}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:11px 18px;border-radius:12px;font-size:0.84rem;font-weight:500;box-shadow:var(--shadow2);transform:translateY(80px);opacity:0;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);display:flex;align-items:center;gap:9px;max-width:340px}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── BULLETIN SALAIRE ── */
+.bulletin{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:1.5rem;max-width:680px}
+.bull-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--red)}
+.bull-logo{font-family:var(--serif);font-size:1.2rem;font-weight:800;color:var(--red)}
+.bull-title{font-size:0.7rem;color:var(--text3);margin-top:3px;letter-spacing:0.06em;text-transform:uppercase}
+.bull-table{width:100%;border-collapse:collapse;font-size:0.82rem;margin-top:1rem}
+.bull-table th{text-align:left;padding:7px 10px;background:var(--bg3);font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--text3)}
+.bull-table td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.bull-table tr:nth-child(even) td{background:var(--bg4)}
+.bull-total{display:flex;justify-content:space-between;margin-top:1rem;padding:1rem;background:var(--red-bg);border:1px solid rgba(232,71,63,0.25);border-radius:10px}
+.bull-total-label{font-size:0.8rem;color:var(--text2);font-weight:600}
+.bull-total-val{font-family:var(--serif);font-size:1.3rem;font-weight:800;color:var(--red)}
+
+/* ── CONTRACT CARD ── */
+.contract-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:all 0.2s;margin-bottom:0.75rem}
+.contract-card:hover{border-color:var(--border2)}
+.contract-card.expiring{border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.03)}
+.contract-card.expired{border-color:rgba(232,71,63,0.4);background:rgba(232,71,63,0.03)}
+.cc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.75rem}
+.cc-name{font-weight:700;font-size:0.92rem;color:var(--text)}
+.cc-post{font-size:0.76rem;color:var(--text3);margin-top:2px}
+.cc-meta{display:flex;gap:1.5rem;font-size:0.78rem;color:var(--text3);flex-wrap:wrap}
+.cc-meta span strong{color:var(--text2)}
+.days-left{font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:100px}
+.days-left.danger{background:var(--red-bg);color:var(--red)}
+.days-left.warn{background:var(--amber-bg);color:var(--amber)}
+.days-left.ok{background:var(--green-bg);color:var(--green)}
+
+/* ── STAR RATING ── */
+.stars{display:flex;gap:3px}
+.star{color:var(--border2);font-size:0.9rem;cursor:pointer;transition:color 0.15s}
+.star.on{color:var(--amber)}
+
+/* ── ORGCHART ── */
+.org-wrap{overflow-x:auto;padding:1rem 0}
+.org-level{display:flex;gap:1rem;justify-content:center;margin-bottom:1.5rem;position:relative}
+.org-node{background:var(--surface);border:1px solid var(--border2);border-radius:12px;padding:0.9rem 1.1rem;text-align:center;min-width:130px;cursor:pointer;transition:all 0.2s}
+.org-node:hover{border-color:var(--red);transform:translateY(-2px)}
+.org-node .on-icon{font-size:1.5rem;margin-bottom:4px}
+.org-node .on-name{font-size:0.78rem;font-weight:700;color:var(--text);line-height:1.3}
+.org-node .on-role{font-size:0.68rem;color:var(--text3);margin-top:2px}
+.org-connector{text-align:center;color:var(--border2);font-size:1.2rem;margin-bottom:-0.5rem}
+
+/* ── DOC CARD ── */
+.doc-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;display:flex;align-items:center;gap:12px;transition:all 0.2s;cursor:pointer}
+.doc-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.doc-icon{font-size:1.8rem;flex-shrink:0}
+.doc-name{font-size:0.84rem;font-weight:600;color:var(--text)}
+.doc-meta{font-size:0.72rem;color:var(--text3);margin-top:2px}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-top:1rem}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast"><span id="t-icon">✅</span><span id="t-msg">OK</span></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-art"><div class="login-lines"></div></div>
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="login-brand-icon">🏥</div>
+      <div>
+        <div class="login-brand-name">ACMS-RH</div>
+        <div class="login-brand-sub">Gestion du Personnel</div>
+      </div>
+    </div>
+    <div class="login-title">Connexion au système</div>
+    <div class="login-sub">Association Camerounaise pour le Marketing Social</div>
+    <div class="role-grid">
+      <div class="role-btn active" onclick="selRole('drh',this)"><span class="role-icon">👑</span><span class="role-name">DRH</span></div>
+      <div class="role-btn" onclick="selRole('rh',this)"><span class="role-icon">👤</span><span class="role-name">Gestionnaire RH</span></div>
+      <div class="role-btn" onclick="selRole('chef',this)"><span class="role-icon">📋</span><span class="role-name">Chef de Programme</span></div>
+      <div class="role-btn" onclick="selRole('employe',this)"><span class="role-icon">🙋</span><span class="role-name">Employé</span></div>
+    </div>
+    <span class="lbl">Identifiant</span>
+    <input class="linput" id="l-user" value="drh@acms-cameroun.org">
+    <span class="lbl">Mot de passe</span>
+    <input class="linput" type="password" value="••••••••">
+    <button class="btn-login" onclick="doLogin()">Accéder au système →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo"><div class="topbar-logo-dot">🏥</div>ACMS-RH</div>
+    <div class="topbar-pill">🇨🇲 Cameroun · PASSR / PASSR CoRD</div>
+    <div class="topbar-pill" id="tp-year">📅 2024–2025</div>
+    <div class="topbar-right">
+      <div class="alert-bell" onclick="navigate('alertes')">🔔<div class="alert-count" id="alert-cnt">5</div></div>
+      <div class="topbar-user">
+        <div class="u-avatar" id="u-av">DR</div>
+        <div><div class="u-name" id="u-nm">Dr. MVONDO Jean</div><div class="u-role" id="u-rl">Directeur RH</div></div>
+      </div>
+      <button class="btn-out" onclick="doLogout()">Déconnexion</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="nav-grp">Vue générale</div>
+      <button class="nav-item active" onclick="nav('dashboard')"><span class="nav-icon">📊</span>Tableau de bord</button>
+      <button class="nav-item" onclick="nav('alertes')"><span class="nav-icon">🔔</span>Alertes <span class="nav-badge" id="sb-alert">5</span></button>
+      <button class="nav-item" onclick="nav('orgchart')"><span class="nav-icon">🏗️</span>Organigramme</button>
+
+      <div class="nav-grp">Personnel</div>
+      <button class="nav-item" onclick="nav('personnel')"><span class="nav-icon">👥</span>Annuaire du personnel</button>
+      <button class="nav-item" onclick="nav('recrutement')"><span class="nav-icon">🔍</span>Recrutement</button>
+      <button class="nav-item" onclick="nav('conges')"><span class="nav-icon">🏖️</span>Congés & Absences</button>
+
+      <div class="nav-grp">Rémunération</div>
+      <button class="nav-item" onclick="nav('salaires')"><span class="nav-icon">💰</span>Salaires & Paie</button>
+      <button class="nav-item" onclick="nav('bulletins')"><span class="nav-icon">🧾</span>Bulletins de paie</button>
+      <button class="nav-item" onclick="nav('indemnites')"><span class="nav-icon">✈️</span>Indemnités terrain</button>
+
+      <div class="nav-grp">Contrats</div>
+      <button class="nav-item" onclick="nav('contrats')"><span class="nav-icon">📄</span>Contrats <span class="nav-badge amber" id="sb-cont">3</span></button>
+      <button class="nav-item" onclick="nav('documents')"><span class="nav-icon">🗂️</span>Documents RH</button>
+
+      <div class="nav-grp">Performances</div>
+      <button class="nav-item" onclick="nav('performances')"><span class="nav-icon">⭐</span>Évaluations</button>
+      <button class="nav-item" onclick="nav('formations')"><span class="nav-icon">📚</span>Formations</button>
+
+      <div class="nav-grp">Rapports</div>
+      <button class="nav-item" onclick="nav('rapports')"><span class="nav-icon">📈</span>Rapports RH</button>
+      <button class="nav-item" onclick="nav('parametres')"><span class="nav-icon">⚙️</span>Paramètres</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- ═══════════ DASHBOARD ═══════════ -->
+      <div class="page active" id="page-dashboard">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Vue globale</div><h2>Tableau de bord RH</h2><div class="ph-sub">ACMS · Programmes PASSR & PASSR CoRD · Mise à jour : aujourd'hui</div></div>
+          <div class="ph-actions"><button class="btn-s">📥 Rapport mensuel</button><button class="btn-p">+ Nouvel employé</button></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi" style="--kc:var(--blue)"><div class="kpi-icon">👥</div><div class="kpi-label">Total personnel</div><div class="kpi-val">87</div><div class="kpi-sub">Tous programmes confondus</div><div class="kpi-trend up">↑ +6 depuis jan. 2024</div></div>
+          <div class="kpi" style="--kc:var(--amber)"><div class="kpi-icon">📄</div><div class="kpi-label">Contrats expirant</div><div class="kpi-val">3</div><div class="kpi-sub">Dans les 60 prochains jours</div><div class="kpi-trend warn">⚠ Action requise</div></div>
+          <div class="kpi" style="--kc:var(--green)"><div class="kpi-icon">💰</div><div class="kpi-label">Masse salariale/mois</div><div class="kpi-val">38.4M</div><div class="kpi-sub">XAF — avril 2025</div><div class="kpi-trend up">↑ stable</div></div>
+          <div class="kpi" style="--kc:var(--purple)"><div class="kpi-icon">⭐</div><div class="kpi-label">Score moyen perf.</div><div class="kpi-val">3.8/5</div><div class="kpi-sub">Évaluation T1 2025</div><div class="kpi-trend up">↑ +0.3 vs T4</div></div>
+          <div class="kpi" style="--kc:var(--red)"><div class="kpi-icon">🏖️</div><div class="kpi-label">En congé aujourd'hui</div><div class="kpi-val">4</div><div class="kpi-sub">sur 87 actifs</div><div class="kpi-trend">Dont 2 maladie</div></div>
+          <div class="kpi" style="--kc:var(--cyan)"><div class="kpi-icon">🔍</div><div class="kpi-label">Postes ouverts</div><div class="kpi-val">2</div><div class="kpi-sub">Recrutements en cours</div><div class="kpi-trend warn">En attente validation</div></div>
+        </div>
+
+        <div class="g2">
+          <div class="card">
+            <div class="card-hd">👥 Répartition par catégorie</div>
+            <div id="cat-chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">🔔 Alertes prioritaires</div>
+            <div id="dash-alerts"></div>
+          </div>
+        </div>
+
+        <div class="g2">
+          <div class="card">
+            <div class="card-hd">📅 Contrats à renouveler (60j)</div>
+            <div id="dash-contrats"></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">📊 Masse salariale par programme</div>
+            <div id="masse-chart"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ PERSONNEL ═══════════ -->
+      <div class="page" id="page-personnel">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Annuaire</div><h2>Personnel ACMS</h2><div class="ph-sub">87 agents · Tous programmes · Toutes catégories</div></div>
+          <div class="ph-actions"><button class="btn-s">📥 Export Excel</button><button class="btn-p" onclick="openM('m-new-emp')">+ Nouvel agent</button></div>
+        </div>
+        <div class="ttbar">
+          <input class="si" placeholder="🔍 Nom, matricule, poste..." oninput="filt(this,'t-pers')">
+          <select class="fsel" onchange="filt(this,'t-pers')"><option value="">Toutes catégories</option><option>Salarié permanent</option><option>Consultant</option><option>Volontaire</option><option>Expatrié</option></select>
+          <select class="fsel"><option>Tous programmes</option><option>PASSR</option><option>PASSR CoRD</option><option>ProFam</option><option>Direction</option></select>
+          <select class="fsel"><option>Tous statuts</option><option>Actif</option><option>En congé</option><option>Suspendu</option></select>
+        </div>
+        <div class="tw"><table id="t-pers">
+          <thead><tr><th>Matricule</th><th>Agent</th><th>Poste</th><th>Catégorie</th><th>Programme</th><th>Site</th><th>Date entrée</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="tb-pers"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ═══════════ SALAIRES ═══════════ -->
+      <div class="page" id="page-salaires">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Rémunération</div><h2>Salaires & Paie</h2><div class="ph-sub">Grille salariale ACMS — Avril 2025</div></div>
+          <div class="ph-actions"><button class="btn-s">📥 Export paie</button><button class="btn-p" onclick="showToast('Paie de mai lancée !')">▶ Lancer paie de mai</button></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi" style="--kc:var(--green)"><div class="kpi-label">Masse brute</div><div class="kpi-val">38.4M</div><div class="kpi-sub">XAF — avril 2025</div></div>
+          <div class="kpi" style="--kc:var(--red)"><div class="kpi-label">CNPS (employeur)</div><div class="kpi-val">3.2M</div><div class="kpi-sub">11.2% masse salariale</div></div>
+          <div class="kpi" style="--kc:var(--amber)"><div class="kpi-label">Retenues salariales</div><div class="kpi-val">2.1M</div><div class="kpi-sub">IRPP + CNPS salarié</div></div>
+          <div class="kpi" style="--kc:var(--blue)"><div class="kpi-label">Net à payer total</div><div class="kpi-val">33.1M</div><div class="kpi-sub">XAF versés ce mois</div></div>
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="sTab(this,'ts-grille')">Grille salariale</button>
+          <button class="tab" onclick="sTab(this,'ts-paie')">Paie du mois</button>
+          <button class="tab" onclick="sTab(this,'ts-hist')">Historique</button>
+        </div>
+        <div id="ts-grille">
+          <div class="tw"><table>
+            <thead><tr><th>Catégorie</th><th>Échelon</th><th>Salaire base brut (XAF)</th><th>Indemnité logement</th><th>Transport</th><th>Prime terrain</th><th>Total brut</th></tr></thead>
+            <tbody id="tb-grille"></tbody>
+          </table></div>
+        </div>
+        <div id="ts-paie" style="display:none">
+          <div class="tw"><table>
+            <thead><tr><th>Matricule</th><th>Agent</th><th>Catégorie</th><th>Brut</th><th>CNPS</th><th>IRPP</th><th>Net</th><th>Statut paie</th></tr></thead>
+            <tbody id="tb-paie"></tbody>
+          </table></div>
+        </div>
+        <div id="ts-hist" style="display:none">
+          <div class="card"><div class="card-hd">📊 Évolution masse salariale 2024</div><div id="hist-chart"></div></div>
+        </div>
+      </div>
+
+      <!-- ═══════════ BULLETINS ═══════════ -->
+      <div class="page" id="page-bulletins">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Paie</div><h2>Bulletins de paie</h2></div>
+          <div class="ph-actions"><button class="btn-p" onclick="showToast('Bulletins générés pour tous les agents !')">🖨️ Générer tous les bulletins</button></div>
+        </div>
+        <div class="ttbar">
+          <select class="fsel"><option>Avril 2025</option><option>Mars 2025</option><option>Février 2025</option><option>Janvier 2025</option></select>
+          <input class="si" placeholder="🔍 Rechercher un agent...">
+        </div>
+        <div class="g2">
+          <div>
+            <div class="tw"><table>
+              <thead><tr><th>Agent</th><th>Poste</th><th>Net (XAF)</th><th>Action</th></tr></thead>
+              <tbody id="tb-bull"></tbody>
+            </table></div>
+          </div>
+          <div class="bulletin" id="bull-preview">
+            <div style="text-align:center;padding:2rem;color:var(--text3)">
+              <div style="font-size:2.5rem;margin-bottom:0.5rem">🧾</div>
+              <div>Sélectionnez un agent pour afficher son bulletin</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ INDEMNITÉS ═══════════ -->
+      <div class="page" id="page-indemnites">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Rémunération</div><h2>Indemnités terrain & Per diem</h2></div>
+          <div class="ph-actions"><button class="btn-p" onclick="openM('m-indem')">+ Nouvelle indemnité</button></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi" style="--kc:var(--blue)"><div class="kpi-label">Per diem journalier</div><div class="kpi-val">15 000</div><div class="kpi-sub">XAF — taux standard ACMS</div></div>
+          <div class="kpi" style="--kc:var(--green)"><div class="kpi-label">Remboursements avril</div><div class="kpi-val">4.2M</div><div class="kpi-sub">XAF — 18 missions</div></div>
+          <div class="kpi" style="--kc:var(--amber)"><div class="kpi-label">En attente validation</div><div class="kpi-val">6</div><div class="kpi-sub">demandes de remboursement</div></div>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>Agent</th><th>Programme</th><th>Type</th><th>Zone</th><th>Dates</th><th>Jours</th><th>Montant (XAF)</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="tb-indem"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ═══════════ CONTRATS ═══════════ -->
+      <div class="page" id="page-contrats">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Contrats</div><h2>Gestion des contrats</h2><div class="ph-sub">Suivi & alertes d'expiration</div></div>
+          <div class="ph-actions"><button class="btn-s">📥 Export</button><button class="btn-p" onclick="openM('m-new-cont')">+ Nouveau contrat</button></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi" style="--kc:var(--green)"><div class="kpi-label">Contrats actifs</div><div class="kpi-val">72</div></div>
+          <div class="kpi" style="--kc:var(--red)"><div class="kpi-label">Expirés (non renouvelés)</div><div class="kpi-val">2</div></div>
+          <div class="kpi" style="--kc:var(--amber)"><div class="kpi-label">Expirent &lt; 30j</div><div class="kpi-val">3</div></div>
+          <div class="kpi" style="--kc:var(--blue)"><div class="kpi-label">CDI</div><div class="kpi-val">28</div></div>
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="sTab(this,'tc-all')">Tous les contrats</button>
+          <button class="tab" onclick="sTab(this,'tc-alert')">⚠ Alertes expiration</button>
+          <button class="tab" onclick="sTab(this,'tc-types')">Par type</button>
+        </div>
+        <div id="tc-all"><div id="cont-list"></div></div>
+        <div id="tc-alert" style="display:none"><div id="cont-alert-list"></div></div>
+        <div id="tc-types" style="display:none">
+          <div class="g2">
+            <div class="card"><div class="card-hd">📊 Contrats par type</div><div id="cont-type-chart"></div></div>
+            <div class="card"><div class="card-hd">📊 Contrats par programme</div><div id="cont-prog-chart"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ PERFORMANCES ═══════════ -->
+      <div class="page" id="page-performances">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Évaluations</div><h2>Gestion des performances</h2><div class="ph-sub">Évaluations T1 2025 — Score moyen : 3.8/5</div></div>
+          <div class="ph-actions"><button class="btn-s">📥 Rapport complet</button><button class="btn-p" onclick="openM('m-eval')">+ Nouvelle évaluation</button></div>
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="sTab(this,'tp-list')">Liste des évaluations</button>
+          <button class="tab" onclick="sTab(this,'tp-fiche')">Fiche d'évaluation</button>
+          <button class="tab" onclick="sTab(this,'tp-stats')">Statistiques</button>
+        </div>
+        <div id="tp-list">
+          <div class="tw"><table>
+            <thead><tr><th>Agent</th><th>Poste</th><th>Période</th><th>Évaluateur</th><th>Score global</th><th>Résultats</th><th>Comportement</th><th>Potentiel</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="tb-perf"></tbody>
+          </table></div>
+        </div>
+        <div id="tp-fiche" style="display:none">
+          <div class="card"><div class="card-hd">📋 Fiche d'évaluation — DEFNANI Toumba Mathieu</div>
+            <div style="margin-bottom:1rem"><span class="b bb">Consultant Data Entry</span> <span class="b bg">T1 2025</span></div>
+            <div class="perf-bar" id="perf-detail"></div>
+            <div style="margin-top:1.5rem;padding:1rem;background:var(--bg3);border-radius:10px">
+              <div style="font-size:0.78rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Commentaires du superviseur</div>
+              <div style="font-size:0.84rem;color:var(--text2)">Agent rigoureux et très engagé dans la gestion des données DHIS2. Excellent suivi des bases de données FOSA. Recommandé pour une mission plus étendue dans le cadre du PASSR CoRD. Points à améliorer : renforcer les compétences en analyse statistique avancée.</div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:1.25rem">
+              <button class="btn-s">📥 Télécharger PDF</button>
+              <button class="btn-p" onclick="showToast('Évaluation validée et signée !')">✔ Valider & Signer</button>
+            </div>
+          </div>
+        </div>
+        <div id="tp-stats" style="display:none">
+          <div class="g2">
+            <div class="card"><div class="card-hd">📊 Distribution des scores</div><div id="perf-dist"></div></div>
+            <div class="card"><div class="card-hd">🏆 Top performers T1 2025</div><div id="top-perf"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ FORMATIONS ═══════════ -->
+      <div class="page" id="page-formations">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Développement</div><h2>Formations & Renforcement</h2></div>
+          <div class="ph-actions"><button class="btn-p" onclick="openM('m-form')">+ Planifier formation</button></div>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>Formation</th><th>Type</th><th>Participants</th><th>Dates</th><th>Lieu</th><th>Budget (XAF)</th><th>Statut</th></tr></thead>
+          <tbody id="tb-form"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ═══════════ CONGÉS ═══════════ -->
+      <div class="page" id="page-conges">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">RH</div><h2>Congés & Absences</h2></div>
+          <div class="ph-actions"><button class="btn-p" onclick="openM('m-conge')">+ Nouvelle demande</button></div>
+        </div>
+        <div class="kpi-row">
+          <div class="kpi" style="--kc:var(--green)"><div class="kpi-label">Congés validés/an</div><div class="kpi-val">18</div><div class="kpi-sub">Droit standard ACMS</div></div>
+          <div class="kpi" style="--kc:var(--amber)"><div class="kpi-label">Demandes en attente</div><div class="kpi-val">4</div></div>
+          <div class="kpi" style="--kc:var(--red)"><div class="kpi-label">Absences injustifiées</div><div class="kpi-val">2</div><div class="kpi-sub">Ce mois-ci</div></div>
+          <div class="kpi" style="--kc:var(--blue)"><div class="kpi-label">En congé aujourd'hui</div><div class="kpi-val">4</div></div>
+        </div>
+        <div class="tw"><table>
+          <thead><tr><th>Agent</th><th>Type</th><th>Du</th><th>Au</th><th>Jours</th><th>Motif</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="tb-conge"></tbody>
+        </table></div>
+      </div>
+
+      <!-- ═══════════ RECRUTEMENT ═══════════ -->
+      <div class="page" id="page-recrutement">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">RH</div><h2>Recrutement</h2><div class="ph-sub">2 postes ouverts</div></div>
+          <div class="ph-actions"><button class="btn-p" onclick="openM('m-poste')">+ Ouvrir un poste</button></div>
+        </div>
+        <div id="recruit-cards"></div>
+      </div>
+
+      <!-- ═══════════ ALERTES ═══════════ -->
+      <div class="page" id="page-alertes">
+        <div class="ph">
+          <div class="ph-left"><div class="ph-tag">Notifications</div><h2>Centre d'alertes RH</h2></div>
+          <div class="ph-actions"><button class="btn-s" onclick="showToast('Toutes alertes marquées lues')">✓ Tout marquer lu</button></div>
+        </div>
+        <div id="alert-list"></div>
+      </div>
+
+      <!-- ═══════════ ORGCHART ═══════════ -->
+      <div class="page" id="page-orgchart">
+        <div class="ph"><div class="ph-left"><div class="ph-tag">Organisation</div><h2>Organigramme ACMS</h2><div class="ph-sub">Structure organisationnelle — Programmes PASSR</div></div></div>
+        <div class="card"><div class="org-wrap" id="org-wrap"></div></div>
+      </div>
+
+      <!-- ═══════════ DOCUMENTS ═══════════ -->
+      <div class="page" id="page-documents">
+        <div class="ph"><div class="ph-left"><div class="ph-tag">GED</div><h2>Documents RH</h2></div><div class="ph-actions"><button class="btn-p">📎 Ajouter document</button></div></div>
+        <div class="g2">
+          <div>
+            <div class="card-hd" style="margin-bottom:0.75rem">📁 Procédures & Politiques</div>
+            <div class="doc-grid" id="doc-pol"></div>
+          </div>
+          <div>
+            <div class="card-hd" style="margin-bottom:0.75rem">📁 Modèles de contrats</div>
+            <div class="doc-grid" id="doc-cont"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ RAPPORTS ═══════════ -->
+      <div class="page" id="page-rapports">
+        <div class="ph"><div class="ph-left"><div class="ph-tag">Analytics</div><h2>Rapports RH</h2></div></div>
+        <div class="g3">
+          <div class="card" style="cursor:pointer" onclick="showToast('Rapport généré !')"><div style="font-size:2rem;margin-bottom:0.5rem">📊</div><div style="font-weight:700;font-size:0.9rem;color:var(--text)">Rapport mensuel RH</div><div style="font-size:0.76rem;color:var(--text3);margin-top:4px">Avril 2025 · PDF / Excel</div></div>
+          <div class="card" style="cursor:pointer" onclick="showToast('Rapport masse salariale exporté')"><div style="font-size:2rem;margin-bottom:0.5rem">💰</div><div style="font-weight:700;font-size:0.9rem;color:var(--text)">Masse salariale</div><div style="font-size:0.76rem;color:var(--text3);margin-top:4px">Évolution annuelle · Graphiques</div></div>
+          <div class="card" style="cursor:pointer" onclick="showToast('Rapport performances exporté')"><div style="font-size:2rem;margin-bottom:0.5rem">⭐</div><div style="font-weight:700;font-size:0.9rem;color:var(--text)">Performances T1 2025</div><div style="font-size:0.76rem;color:var(--text3);margin-top:4px">Scores · Distribution · Top 10</div></div>
+          <div class="card" style="cursor:pointer" onclick="showToast('Rapport contrats exporté')"><div style="font-size:2rem;margin-bottom:0.5rem">📄</div><div style="font-weight:700;font-size:0.9rem;color:var(--text)">Contrats & Renouvellements</div><div style="font-size:0.76rem;color:var(--text3);margin-top:4px">Expirations · Historique</div></div>
+          <div class="card" style="cursor:pointer" onclick="showToast('Rapport CNPS prêt')"><div style="font-size:2rem;margin-bottom:0.5rem">🏛️</div><div style="font-weight:700;font-size:0.9rem;color:var(--text)">Déclaration CNPS</div><div style="font-size:0.76rem;color:var(--text3);margin-top:4px">Format officiel · Trimestriel</div></div>
+          <div class="card" style="cursor:pointer" onclick="showToast('Rapport congés exporté')"><div style="font-size:2rem;margin-bottom:0.5rem">🏖️</div><div style="font-weight:700;font-size:0.9rem;color:var(--text)">Congés & Absences</div><div style="font-size:0.76rem;color:var(--text3);margin-top:4px">Soldes · Historique · Tendances</div></div>
+        </div>
+      </div>
+
+      <!-- ═══════════ PARAMÈTRES ═══════════ -->
+      <div class="page" id="page-parametres">
+        <div class="ph"><div class="ph-left"><div class="ph-tag">Système</div><h2>Paramètres ACMS-RH</h2></div></div>
+        <div class="g2">
+          <div class="card">
+            <div class="card-hd">🏥 Organisation</div>
+            <div class="fgrp" style="margin-bottom:1rem"><div class="fl">NOM ORGANISATION</div><input class="fi" value="ACMS — Association Camerounaise pour le Marketing Social"></div>
+            <div class="fgrp" style="margin-bottom:1rem"><div class="fl">PROGRAMME PRINCIPAL</div><input class="fi" value="PASSR / PASSR CoRD"></div>
+            <div class="fgrp"><div class="fl">DEVISE</div><select class="fs"><option>XAF (Franc CFA)</option></select></div>
+            <button class="btn-p" style="margin-top:1.25rem" onclick="showToast('Paramètres sauvegardés !')">💾 Sauvegarder</button>
+          </div>
+          <div class="card">
+            <div class="card-hd">⚙️ Alertes automatiques</div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                <div><div style="font-size:0.84rem;font-weight:600;color:var(--text)">Contrats expirant &lt; 30 jours</div><div style="font-size:0.74rem;color:var(--text3)">Email + notification système</div></div>
+                <div style="width:40px;height:22px;background:var(--red);border-radius:11px;cursor:pointer;position:relative"><div style="position:absolute;right:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%"></div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+                <div><div style="font-size:0.84rem;font-weight:600;color:var(--text)">Évaluations en retard</div><div style="font-size:0.74rem;color:var(--text3)">Rappel mensuel automatique</div></div>
+                <div style="width:40px;height:22px;background:var(--red);border-radius:11px;cursor:pointer;position:relative"><div style="position:absolute;right:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%"></div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+                <div><div style="font-size:0.84rem;font-weight:600;color:var(--text)">Impayés CNPS</div><div style="font-size:0.74rem;color:var(--text3)">Alerte avant date limite</div></div>
+                <div style="width:40px;height:22px;background:var(--border2);border-radius:11px;cursor:pointer;position:relative" onclick="this.style.background='var(--red)';this.querySelector('div').style.right='3px';showToast('Alerte CNPS activée')"><div style="position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:all 0.2s"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /shell -->
+</div><!-- /app -->
+
+<!-- ═══ MODALS ═══ -->
+<div class="mo" id="m-new-emp">
+  <div class="mbox">
+    <div class="mhd"><div class="mtitle">➕ Nouvel agent ACMS</div><button class="mclose" onclick="closeM('m-new-emp')">✕</button></div>
+    <div class="fg">
+      <div class="fgrp"><div class="fl">NOM</div><input class="fi" placeholder="Nom de famille"></div>
+      <div class="fgrp"><div class="fl">PRÉNOM(S)</div><input class="fi" placeholder="Prénom(s)"></div>
+      <div class="fgrp"><div class="fl">POSTE</div><input class="fi" placeholder="ex: Data Entry Operator"></div>
+      <div class="fgrp"><div class="fl">CATÉGORIE</div><select class="fs"><option>Salarié permanent</option><option>Consultant</option><option>Volontaire</option><option>Expatrié</option></select></div>
+      <div class="fgrp"><div class="fl">PROGRAMME</div><select class="fs"><option>PASSR</option><option>PASSR CoRD</option><option>ProFam</option><option>Direction</option></select></div>
+      <div class="fgrp"><div class="fl">SITE</div><select class="fs"><option>Garoua</option><option>Yaoundé</option><option>Douala</option><option>Maroua</option><option>Ngaoundéré</option></select></div>
+      <div class="fgrp"><div class="fl">DATE D'ENTRÉE</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">SALAIRE BRUT (XAF)</div><input class="fi" type="number" placeholder="ex: 350000"></div>
+      <div class="fgrp full"><div class="fl">EMAIL</div><input class="fi" placeholder="prenom.nom@acms-cameroun.org"></div>
+    </div>
+    <div class="fa"><button class="btn-s" onclick="closeM('m-new-emp')">Annuler</button><button class="btn-p" onclick="closeM('m-new-emp');showToast('Agent créé et dossier ouvert !')">Créer le dossier</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-new-cont">
+  <div class="mbox">
+    <div class="mhd"><div class="mtitle">📄 Nouveau contrat</div><button class="mclose" onclick="closeM('m-new-cont')">✕</button></div>
+    <div class="fg">
+      <div class="fgrp"><div class="fl">AGENT</div><select class="fs"><option>DEFNANI Toumba Mathieu</option><option>MOUSSA Aïcha</option><option>NGONO Eric</option></select></div>
+      <div class="fgrp"><div class="fl">TYPE DE CONTRAT</div><select class="fs"><option>CDD</option><option>CDI</option><option>Contrat de consultance</option><option>Contrat de volontariat</option></select></div>
+      <div class="fgrp"><div class="fl">DATE DE DÉBUT</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">DATE DE FIN</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">PROGRAMME</div><select class="fs"><option>PASSR</option><option>PASSR CoRD</option><option>ProFam</option></select></div>
+      <div class="fgrp"><div class="fl">SALAIRE CONTRACTUEL (XAF)</div><input class="fi" type="number"></div>
+    </div>
+    <div class="fa"><button class="btn-s" onclick="closeM('m-new-cont')">Annuler</button><button class="btn-p" onclick="closeM('m-new-cont');showToast('Contrat créé — alerte configurée !')">Créer & Configurer alerte</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-eval">
+  <div class="mbox">
+    <div class="mhd"><div class="mtitle">⭐ Nouvelle évaluation</div><button class="mclose" onclick="closeM('m-eval')">✕</button></div>
+    <div class="fg">
+      <div class="fgrp"><div class="fl">AGENT À ÉVALUER</div><select class="fs"><option>DEFNANI Toumba Mathieu</option><option>MOUSSA Aïcha</option></select></div>
+      <div class="fgrp"><div class="fl">PÉRIODE</div><select class="fs"><option>T1 2025 (Jan–Mar)</option><option>T2 2025 (Avr–Jun)</option><option>Annuelle 2024</option></select></div>
+      <div class="fgrp"><div class="fl">ÉVALUATEUR</div><input class="fi" value="Dr. MVONDO Jean — DRH"></div>
+      <div class="fgrp"><div class="fl">DATE D'ÉVALUATION</div><input class="fi" type="date"></div>
+    </div>
+    <div style="margin-top:1.25rem">
+      <div class="fl" style="margin-bottom:10px">CRITÈRES D'ÉVALUATION (note /5)</div>
+      <div id="eval-form"></div>
+    </div>
+    <div class="fa"><button class="btn-s" onclick="closeM('m-eval')">Annuler</button><button class="btn-p" onclick="closeM('m-eval');showToast('Évaluation enregistrée !')">Enregistrer</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-indem">
+  <div class="mbox">
+    <div class="mhd"><div class="mtitle">✈️ Demande d'indemnité terrain</div><button class="mclose" onclick="closeM('m-indem')">✕</button></div>
+    <div class="fg">
+      <div class="fgrp"><div class="fl">AGENT</div><select class="fs"><option>DEFNANI Toumba Mathieu</option><option>MOUSSA Aïcha</option></select></div>
+      <div class="fgrp"><div class="fl">TYPE</div><select class="fs"><option>Per diem terrain</option><option>Transport</option><option>Hébergement</option><option>Carburant</option></select></div>
+      <div class="fgrp"><div class="fl">ZONE / DESTINATION</div><input class="fi" placeholder="ex: Pitoa, région Nord"></div>
+      <div class="fgrp"><div class="fl">PROGRAMME</div><select class="fs"><option>PASSR</option><option>PASSR CoRD</option></select></div>
+      <div class="fgrp"><div class="fl">DATE DÉBUT MISSION</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">DATE FIN MISSION</div><input class="fi" type="date"></div>
+      <div class="fgrp full"><div class="fl">MONTANT RÉCLAMÉ (XAF)</div><input class="fi" type="number" placeholder="Calculé automatiquement ou saisir manuellement"></div>
+    </div>
+    <div class="fa"><button class="btn-s" onclick="closeM('m-indem')">Annuler</button><button class="btn-p" onclick="closeM('m-indem');showToast('Demande soumise pour validation !')">Soumettre</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-conge">
+  <div class="mbox">
+    <div class="mhd"><div class="mtitle">🏖️ Demande de congé</div><button class="mclose" onclick="closeM('m-conge')">✕</button></div>
+    <div class="fg">
+      <div class="fgrp"><div class="fl">AGENT</div><select class="fs"><option>DEFNANI Toumba Mathieu</option><option>MOUSSA Aïcha</option></select></div>
+      <div class="fgrp"><div class="fl">TYPE DE CONGÉ</div><select class="fs"><option>Congé annuel</option><option>Congé maladie</option><option>Congé maternité</option><option>Congé exceptionnel</option><option>Absence autorisée</option></select></div>
+      <div class="fgrp"><div class="fl">DATE DÉBUT</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">DATE FIN</div><input class="fi" type="date"></div>
+      <div class="fgrp full"><div class="fl">MOTIF</div><textarea class="fi" rows="2" placeholder="Motif de la demande..."></textarea></div>
+    </div>
+    <div class="fa"><button class="btn-s" onclick="closeM('m-conge')">Annuler</button><button class="btn-p" onclick="closeM('m-conge');showToast('Demande soumise au superviseur !')">Soumettre</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-form">
+  <div class="mbox">
+    <div class="mhd"><div class="mtitle">📚 Planifier une formation</div><button class="mclose" onclick="closeM('m-form')">✕</button></div>
+    <div class="fg">
+      <div class="fgrp full"><div class="fl">INTITULÉ DE LA FORMATION</div><input class="fi" placeholder="ex: Formation DHIS2 avancée"></div>
+      <div class="fgrp"><div class="fl">TYPE</div><select class="fs"><option>Interne</option><option>Externe</option><option>En ligne</option><option>Terrain</option></select></div>
+      <div class="fgrp"><div class="fl">BUDGET (XAF)</div><input class="fi" type="number"></div>
+      <div class="fgrp"><div class="fl">DATE DÉBUT</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">DATE FIN</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">LIEU</div><input class="fi" placeholder="ex: Garoua / En ligne"></div>
+    </div>
+    <div class="fa"><button class="btn-s" onclick="closeM('m-form')">Annuler</button><button class="btn-p" onclick="closeM('m-form');showToast('Formation planifiée !')">Planifier</button></div>
+  </div>
+</div>
+
+<div class="mo" id="m-poste">
+  <div class="mbox">
+    <div class="mhd"><div class="mtitle">🔍 Ouvrir un poste</div><button class="mclose" onclick="closeM('m-poste')">✕</button></div>
+    <div class="fg">
+      <div class="fgrp full"><div class="fl">TITRE DU POSTE</div><input class="fi" placeholder="ex: Data Analyst MEAL"></div>
+      <div class="fgrp"><div class="fl">PROGRAMME</div><select class="fs"><option>PASSR</option><option>PASSR CoRD</option><option>ProFam</option></select></div>
+      <div class="fgrp"><div class="fl">SITE</div><select class="fs"><option>Garoua</option><option>Yaoundé</option><option>Maroua</option></select></div>
+      <div class="fgrp"><div class="fl">TYPE DE CONTRAT</div><select class="fs"><option>CDD 6 mois</option><option>CDD 12 mois</option><option>Consultance</option><option>CDI</option></select></div>
+      <div class="fgrp"><div class="fl">DATE LIMITE CANDIDATURES</div><input class="fi" type="date"></div>
+      <div class="fgrp"><div class="fl">BUDGET MENSUEL MAX (XAF)</div><input class="fi" type="number"></div>
+    </div>
+    <div class="fa"><button class="btn-s" onclick="closeM('m-poste')">Annuler</button><button class="btn-p" onclick="closeM('m-poste');showToast('Poste ouvert et publié !')">Ouvrir le poste</button></div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────
+const today = new Date();
+function daysLeft(dateStr){
+  const d=new Date(dateStr);
+  return Math.round((d-today)/(1000*60*60*24));
+}
+
+const PERSONNEL=[
+  {mat:'ACMS-2024-001',nom:'DEFNANI Toumba Mathieu',poste:'Consultant Data Entry / MEAL',cat:'Consultant',prog:'PASSR',site:'Garoua',entree:'2024-08-01',statut:'Actif'},
+  {mat:'ACMS-2023-002',nom:'Dr. MVONDO Jean',poste:'Directeur RH',cat:'Salarié permanent',prog:'Direction',site:'Yaoundé',entree:'2019-03-15',statut:'Actif'},
+  {mat:'ACMS-2024-003',nom:'MOUSSA Aïcha',poste:'Superviseure terrain',cat:'Salarié permanent',prog:'PASSR CoRD',site:'Garoua',entree:'2022-06-01',statut:'Actif'},
+  {mat:'ACMS-2024-004',nom:'NGONO Eric',poste:'Data Analyst',cat:'Consultant',prog:'ProFam',site:'Yaoundé',entree:'2024-01-15',statut:'Actif'},
+  {mat:'ACMS-2023-005',nom:'Dr. SMITH Amanda',poste:'Conseillère technique',cat:'Expatrié',prog:'PASSR',site:'Yaoundé',entree:'2023-09-01',statut:'Actif'},
+  {mat:'ACMS-2024-006',nom:'BELLO Ibrahim',poste:'Agent terrain PF',cat:'Consultant',prog:'PASSR CoRD',site:'Maroua',entree:'2024-04-01',statut:'Actif'},
+  {mat:'ACMS-2022-007',nom:'FOUDA Christine',poste:'Comptable principale',cat:'Salarié permanent',prog:'Direction',site:'Yaoundé',entree:'2020-11-01',statut:'Actif'},
+  {mat:'ACMS-2024-008',nom:'HAMADOU Yaya',poste:'Logisticien',cat:'Salarié permanent',prog:'PASSR',site:'Garoua',entree:'2021-05-15',statut:'En congé'},
+  {mat:'VOL-2025-001',nom:'KAMGA Sarah',poste:'Volontaire MEAL',cat:'Volontaire',prog:'PASSR CoRD',site:'Garoua',entree:'2025-01-10',statut:'Actif'},
+  {mat:'ACMS-2024-010',nom:'NKENG Junior',poste:'Chargé de communication',cat:'Consultant',prog:'ProFam',site:'Douala',entree:'2024-07-01',statut:'Actif'},
+];
+
+const CONTRATS=[
+  {id:'CTR-001',agent:'DEFNANI Toumba Mathieu',poste:'Consultant Data Entry',type:'Consultance',prog:'PASSR',debut:'2024-08-01',fin:'2025-07-31',salaire:350000,statut:'Actif'},
+  {id:'CTR-002',agent:'MOUSSA Aïcha',poste:'Superviseure terrain',type:'CDD',prog:'PASSR CoRD',debut:'2022-06-01',fin:'2025-05-31',salaire:480000,statut:'Actif'},
+  {id:'CTR-003',agent:'BELLO Ibrahim',poste:'Agent terrain PF',type:'Consultance',prog:'PASSR CoRD',debut:'2024-04-01',fin:'2025-05-15',salaire:280000,statut:'Actif'},
+  {id:'CTR-004',agent:'Dr. SMITH Amanda',poste:'Conseillère technique',type:'Expatrié',prog:'PASSR',debut:'2023-09-01',fin:'2025-08-31',salaire:1800000,statut:'Actif'},
+  {id:'CTR-005',agent:'KAMGA Sarah',poste:'Volontaire MEAL',type:'Volontariat',prog:'PASSR CoRD',debut:'2025-01-10',fin:'2025-07-10',salaire:80000,statut:'Actif'},
+  {id:'CTR-006',agent:'Dr. MVONDO Jean',poste:'Directeur RH',type:'CDI',prog:'Direction',debut:'2019-03-15',fin:'—',salaire:920000,statut:'Actif'},
+  {id:'CTR-007',agent:'FOUDA Christine',poste:'Comptable principale',type:'CDI',prog:'Direction',debut:'2020-11-01',fin:'—',salaire:650000,statut:'Actif'},
+];
+
+const SALAIRES_GRILLE=[
+  {cat:'Consultant Junior',echelon:'C1',base:280000,logt:30000,transport:20000,terrain:25000},
+  {cat:'Consultant Intermédiaire',echelon:'C2',base:350000,logt:40000,transport:25000,terrain:35000},
+  {cat:'Consultant Senior',echelon:'C3',base:480000,logt:55000,transport:30000,terrain:50000},
+  {cat:'Salarié Cadre A',echelon:'S1',base:520000,logt:70000,transport:35000,terrain:40000},
+  {cat:'Salarié Cadre B',echelon:'S2',base:680000,logt:90000,transport:40000,terrain:55000},
+  {cat:'Directeur',echelon:'D1',base:920000,logt:120000,transport:60000,terrain:80000},
+  {cat:'Expatrié',echelon:'EXP',base:1800000,logt:250000,transport:100000,terrain:150000},
+  {cat:'Volontaire',echelon:'V1',base:80000,logt:0,transport:15000,terrain:20000},
+];
+
+const EVALS=[
+  {agent:'DEFNANI Toumba Mathieu',poste:'Consultant Data Entry',periode:'T1 2025',eval:'Dr. MVONDO Jean',score:4.1,resultats:4.3,comportement:4.0,potentiel:4.2,statut:'Validé'},
+  {agent:'MOUSSA Aïcha',poste:'Superviseure terrain',periode:'T1 2025',eval:'Dr. MVONDO Jean',score:4.5,resultats:4.6,comportement:4.4,potentiel:4.3,statut:'Validé'},
+  {agent:'BELLO Ibrahim',poste:'Agent terrain PF',periode:'T1 2025',eval:'MOUSSA Aïcha',score:3.2,resultats:3.1,comportement:3.5,potentiel:3.0,statut:'En attente'},
+  {agent:'NGONO Eric',poste:'Data Analyst',periode:'T1 2025',eval:'Dr. MVONDO Jean',score:3.8,resultats:3.9,comportement:3.7,potentiel:4.0,statut:'Validé'},
+  {agent:'KAMGA Sarah',poste:'Volontaire MEAL',periode:'T1 2025',eval:'MOUSSA Aïcha',score:4.0,resultats:3.8,comportement:4.2,potentiel:4.1,statut:'Validé'},
+  {agent:'HAMADOU Yaya',poste:'Logisticien',periode:'T1 2025',eval:'Dr. MVONDO Jean',score:2.9,resultats:2.8,comportement:3.2,potentiel:2.8,statut:'Non réalisé'},
+];
+
+const ALERTS_DATA=[
+  {type:'crit',icon:'🚨',titre:'Contrat expirant dans 15 jours',msg:'Le contrat de BELLO Ibrahim (CTR-003) expire le 15 mai 2025. Renouvellement requis immédiatement.',time:'Aujourd\'hui',action:'Renouveler'},
+  {type:'warn',icon:'⚠️',titre:'Contrat expirant dans 30 jours',msg:'Le contrat de MOUSSA Aïcha (CTR-002) expire le 31 mai 2025. Préparer le dossier de renouvellement.',time:'Aujourd\'hui',action:'Voir'},
+  {type:'warn',icon:'⚠️',titre:'Évaluation en retard',msg:'HAMADOU Yaya n\'a pas été évalué pour T1 2025. Délai dépassé de 12 jours.',time:'Il y a 2j',action:'Évaluer'},
+  {type:'info',icon:'📋',titre:'6 demandes d\'indemnités en attente',msg:'Des demandes de per diem terrain attendent votre validation depuis plus de 5 jours.',time:'Il y a 3j',action:'Valider'},
+  {type:'info',icon:'📚',titre:'Formation DHIS2 planifiée',msg:'Formation avancée DHIS2 prévue le 15 mai 2025 pour 8 agents du programme PASSR.',time:'Il y a 4j',action:'Voir'},
+  {type:'ok',icon:'✅',titre:'Paie d\'avril validée',msg:'La paie du mois d\'avril 2025 a été traitée et validée. 87 bulletins générés. Total : 33.1M XAF.',time:'Il y a 5j',action:'Détails'},
+];
+
+const FORMATIONS=[
+  {nom:'Formation DHIS2 Avancée',type:'Interne',participants:'8 agents PASSR',dates:'15–17 mai 2025',lieu:'Garoua',budget:450000,statut:'Planifiée'},
+  {nom:'Gestion de projet MEAL',type:'Externe',participants:'5 superviseurs',dates:'2–4 juin 2025',lieu:'Yaoundé',budget:1200000,statut:'Approuvée'},
+  {nom:'Excel & Power BI pour les données PF',type:'En ligne',participants:'12 agents data',dates:'Mai 2025',lieu:'En ligne',budget:180000,statut:'En cours'},
+  {nom:'Planification familiale — protocoles',type:'Terrain',participants:'18 agents terrain',dates:'20–22 avr. 2025',lieu:'Garoua + Maroua',budget:800000,statut:'Terminée'},
+  {nom:'Leadership & Management',type:'Externe',participants:'4 chefs programme',dates:'10–12 juil. 2025',lieu:'Douala',budget:2200000,statut:'Planifiée'},
+];
+
+const CONGES=[
+  {agent:'HAMADOU Yaya',type:'Congé annuel',du:'28 avr.',au:'12 mai 2025',jours:10,motif:'Vacances annuelles',statut:'Validé'},
+  {agent:'FOUDA Christine',type:'Congé maladie',du:'2 mai',au:'5 mai 2025',jours:3,motif:'Certificat médical',statut:'Validé'},
+  {agent:'BELLO Ibrahim',type:'Congé exceptionnel',du:'3 mai',au:'3 mai 2025',jours:1,motif:'Mariage',statut:'En attente'},
+  {agent:'KAMGA Sarah',type:'Absence autorisée',du:'6 mai',au:'6 mai 2025',jours:1,motif:'Convocation administrative',statut:'En attente'},
+  {agent:'DEFNANI Toumba Mathieu',type:'Congé annuel',du:'20 juil.',au:'3 août 2025',jours:10,motif:'Congé planifié',statut:'En attente'},
+];
+
+const INDEMNITES=[
+  {agent:'DEFNANI Toumba Mathieu',prog:'PASSR',type:'Per diem terrain',zone:'Pitoa + Lagdo',dates:'14–16 avr.',jours:3,montant:45000,statut:'Validé'},
+  {agent:'MOUSSA Aïcha',prog:'PASSR CoRD',type:'Transport',zone:'Garoua–Maroua',dates:'22 avr.',jours:1,montant:25000,statut:'Validé'},
+  {agent:'BELLO Ibrahim',prog:'PASSR CoRD',type:'Per diem terrain',zone:'Mayo-Tsanaga',dates:'18–22 avr.',jours:5,montant:75000,statut:'En attente'},
+  {agent:'NGONO Eric',prog:'ProFam',type:'Transport',zone:'Yaoundé–Douala',dates:'28 avr.',jours:1,montant:18000,statut:'En attente'},
+  {agent:'HAMADOU Yaya',prog:'PASSR',type:'Per diem terrain',zone:'Bénoué',dates:'8–9 avr.',jours:2,montant:30000,statut:'Validé'},
+];
+
+const RECRUIT=[
+  {poste:'Data Analyst MEAL Senior',prog:'PASSR CoRD',site:'Garoua',type:'CDD 12 mois',deadline:'31 mai 2025',candidats:7,phase:'Entretiens en cours',budget:'550 000 XAF/mois'},
+  {poste:'Agent terrain Planification Familiale',prog:'PASSR',site:'Maroua',type:'Consultance',deadline:'15 mai 2025',candidats:12,phase:'Présélection dossiers',budget:'280 000 XAF/mois'},
+];
+
+const DOCS_POL=[
+  {icon:'📘',nom:'Manuel des procédures RH',meta:'Version 3.2 · Jan 2024'},
+  {icon:'📗',nom:'Politique salariale ACMS',meta:'Grille 2025 · Confidentiel'},
+  {icon:'📙',nom:'Code de conduite personnel',meta:'Mis à jour fév. 2024'},
+  {icon:'📕',nom:'Politique de protection',meta:'Safeguarding Policy 2024'},
+];
+
+const DOCS_CONT=[
+  {icon:'📄',nom:'Modèle CDD standard',meta:'Word · Français'},
+  {icon:'📄',nom:'Modèle contrat consultance',meta:'Word · FR / EN'},
+  {icon:'📄',nom:'Avenant de contrat',meta:'Word · Modifiable'},
+  {icon:'📄',nom:'Contrat de volontariat',meta:'Word · PASSR CoRD'},
+];
+
+const PERF_CRITERIA=['Atteinte des objectifs','Qualité du travail','Respect des délais','Travail d\'équipe','Initiative & Innovation','Maîtrise technique','Communication','Assiduité & ponctualité'];
+const PERF_FICHE=[
+  {label:'Atteinte des objectifs',score:86},
+  {label:'Qualité des données saisies',score:92},
+  {label:'Maîtrise DHIS2 / KoboCollect',score:90},
+  {label:'Respect des délais de reporting',score:82},
+  {label:'Travail en équipe',score:80},
+  {label:'Initiative & Proactivité',score:78},
+  {label:'Communication professionnelle',score:84},
+  {label:'Assiduité & Ponctualité',score:95},
+];
+
+// ─── LOGIN ───────────────────────────────────────────────────────────────
+let curRole='drh';
+const roleMap={
+  drh:{nm:'Dr. MVONDO Jean',rl:'Directeur RH',av:'DM'},
+  rh:{nm:'FOUDA Christine',rl:'Gestionnaire RH',av:'FC'},
+  chef:{nm:'MOUSSA Aïcha',rl:'Chef de Programme PASSR',av:'MA'},
+  employe:{nm:'DEFNANI Toumba Mathieu',rl:'Consultant Data Entry',av:'DT'},
+};
+function selRole(r,el){
+  curRole=r;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const m={drh:'drh@acms-cameroun.org',rh:'rh@acms-cameroun.org',chef:'chef.prog@acms-cameroun.org',employe:'defnanim@acms-cameroun.org'};
+  document.getElementById('l-user').value=m[r];
+}
+function doLogin(){
+  const u=roleMap[curRole];
+  document.getElementById('u-av').textContent=u.av;
+  document.getElementById('u-nm').textContent=u.nm;
+  document.getElementById('u-rl').textContent=u.rl;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('on');
+  initAll();
+  showToast('Connexion réussie ! Bienvenue, '+u.nm.split(' ')[0]+' 👋');
+}
+function doLogout(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').classList.remove('on');
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────
+function nav(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);
+  if(pg)pg.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(x=>{
+    if(x.getAttribute('onclick')&&x.getAttribute('onclick').includes("'"+p+"'"))x.classList.add('active');
+  });
+}
+
+// ─── MODAL ───────────────────────────────────────────────────────────────
+function openM(id){document.getElementById(id).classList.add('open')}
+function closeM(id){document.getElementById(id).classList.remove('open')}
+document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))e.target.classList.remove('open')});
+
+// ─── TOAST ───────────────────────────────────────────────────────────────
+function showToast(msg,icon='✅'){
+  const t=document.getElementById('toast');
+  document.getElementById('t-msg').textContent=msg;
+  document.getElementById('t-icon').textContent=icon;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────
+function sTab(btn,id){
+  const parent=btn.closest('.tabs');
+  parent.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  // find sibling tab divs
+  let el=parent.nextElementSibling;
+  while(el&&(el.tagName==='DIV'&&(el.id.startsWith('ts-')||el.id.startsWith('tc-')||el.id.startsWith('tp-')))){
+    el.style.display='none';el=el.nextElementSibling;
+  }
+  const target=document.getElementById(id);
+  if(target)target.style.display='block';
+}
+
+// ─── FILTER ───────────────────────────────────────────────────────────────
+function filt(inp,tid){
+  const q=(inp.value||'').toLowerCase();
+  const rows=document.querySelectorAll('#'+tid+' tbody tr');
+  rows.forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────
+function badge(txt,cls){return`<span class="b ${cls}">${txt}</span>`}
+function statBadge(s){
+  const m={Actif:'bg','En congé':'ba',Suspendu:'br',Validé:'bg','En attente':'ba','Non réalisé':'br',Expiré:'br',Soldé:'bg',Partiel:'ba',Impayé:'br','Planifiée':'bb','En cours':'bc',Terminée:'bg',Approuvée:'bg'};
+  return badge(s,m[s]||'bb');
+}
+
+function renderPersonnel(){
+  const tb=document.getElementById('tb-pers');if(!tb)return;
+  const catCls={Consultant:'bb','Salarié permanent':'bg',Volontaire:'bc',Expatrié:'bp'};
+  tb.innerHTML=PERSONNEL.map(p=>`<tr>
+    <td><code style="font-size:0.72rem;background:var(--bg3);padding:2px 6px;border-radius:5px">${p.mat}</code></td>
+    <td><strong style="color:var(--text)">${p.nom}</strong></td>
+    <td style="color:var(--text3);font-size:0.8rem">${p.poste}</td>
+    <td>${badge(p.cat,catCls[p.cat]||'bb')}</td>
+    <td>${p.prog}</td><td>${p.site}</td>
+    <td style="font-size:0.78rem;color:var(--text3)">${p.entree}</td>
+    <td>${statBadge(p.statut)}</td>
+    <td style="display:flex;gap:4px">
+      <button class="btn-s btn-sm" onclick="showToast('Dossier de ${p.nom.split(' ')[0]}')">👁 Dossier</button>
+      <button class="btn-s btn-sm" onclick="showBull('${p.nom}')">🧾</button>
+    </td>
+  </tr>`).join('');
+}
+
+function renderGrille(){
+  const tb=document.getElementById('tb-grille');if(!tb)return;
+  tb.innerHTML=SALAIRES_GRILLE.map(g=>{
+    const tot=g.base+g.logt+g.transport+g.terrain;
+    return`<tr>
+      <td><strong style="color:var(--text)">${g.cat}</strong></td>
+      <td>${badge(g.echelon,'bb')}</td>
+      <td>${g.base.toLocaleString()}</td>
+      <td>${g.logt.toLocaleString()}</td>
+      <td>${g.transport.toLocaleString()}</td>
+      <td>${g.terrain.toLocaleString()}</td>
+      <td><strong style="color:var(--green)">${tot.toLocaleString()} XAF</strong></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPaie(){
+  const tb=document.getElementById('tb-paie');if(!tb)return;
+  const data=PERSONNEL.slice(0,8).map(p=>{
+    const base=p.cat==='Expatrié'?1800000:p.cat==='Volontaire'?80000:p.cat==='Consultant'?350000:520000;
+    const cnps=Math.round(base*0.028);const irpp=Math.round(base*0.035);const net=base-cnps-irpp;
+    return{...p,base,cnps,irpp,net};
+  });
+  tb.innerHTML=data.map(p=>`<tr>
+    <td><code style="font-size:0.72rem;background:var(--bg3);padding:2px 5px;border-radius:5px">${p.mat}</code></td>
+    <td><strong style="color:var(--text)">${p.nom}</strong></td>
+    <td style="font-size:0.78rem">${p.cat}</td>
+    <td>${p.base.toLocaleString()}</td>
+    <td style="color:var(--red)">${p.cnps.toLocaleString()}</td>
+    <td style="color:var(--amber)">${p.irpp.toLocaleString()}</td>
+    <td><strong style="color:var(--green)">${p.net.toLocaleString()} XAF</strong></td>
+    <td>${badge('Payé','bg')}</td>
+  </tr>`).join('');
+}
+
+function renderBulletinList(){
+  const tb=document.getElementById('tb-bull');if(!tb)return;
+  tb.innerHTML=PERSONNEL.slice(0,8).map(p=>{
+    const net=p.cat==='Expatrié'?1692000:p.cat==='Volontaire'?72000:p.cat==='Consultant'?317850:473850;
+    return`<tr>
+      <td><strong style="color:var(--text)">${p.nom}</strong></td>
+      <td style="font-size:0.78rem;color:var(--text3)">${p.poste}</td>
+      <td><strong style="color:var(--green)">${net.toLocaleString()}</strong></td>
+      <td><button class="btn-s btn-sm" onclick="showBull('${p.nom}')">🧾 Voir</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function showBull(nom){
+  const agent=PERSONNEL.find(p=>p.nom===nom)||PERSONNEL[0];
+  const base=agent.cat==='Expatrié'?1800000:agent.cat==='Volontaire'?80000:agent.cat==='Consultant'?350000:520000;
+  const logt=agent.cat==='Expatrié'?250000:agent.cat==='Volontaire'?0:agent.cat==='Consultant'?40000:70000;
+  const trans=agent.cat==='Volontaire'?15000:25000;terrain=35000;
+  const brut=base+logt+trans+terrain;
+  const cnps=Math.round(brut*0.028);const irpp=Math.round(brut*0.035);const net=brut-cnps-irpp;
+  document.getElementById('bull-preview').innerHTML=`
+    <div class="bull-hd">
+      <div><div class="bull-logo">🏥 ACMS</div><div class="bull-title">BULLETIN DE PAIE — AVRIL 2025</div></div>
+      <div style="text-align:right;font-size:0.76rem;color:var(--text3)">Programme : ${agent.prog}<br>Site : ${agent.site}</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;font-size:0.79rem;margin-bottom:1rem">
+      <div><strong style="color:var(--text2)">Nom :</strong> <span style="color:var(--text)">${agent.nom}</span></div>
+      <div><strong style="color:var(--text2)">Matricule :</strong> <span style="color:var(--text)">${agent.mat}</span></div>
+      <div><strong style="color:var(--text2)">Poste :</strong> <span style="color:var(--text)">${agent.poste}</span></div>
+      <div><strong style="color:var(--text2)">Catégorie :</strong> <span style="color:var(--text)">${agent.cat}</span></div>
+    </div>
+    <table class="bull-table">
+      <thead><tr><th>Rubrique</th><th>Type</th><th>Montant (XAF)</th></tr></thead>
+      <tbody>
+        <tr><td>Salaire de base</td><td style="color:var(--green)">Gain</td><td>${base.toLocaleString()}</td></tr>
+        <tr><td>Indemnité de logement</td><td style="color:var(--green)">Gain</td><td>${logt.toLocaleString()}</td></tr>
+        <tr><td>Indemnité de transport</td><td style="color:var(--green)">Gain</td><td>${trans.toLocaleString()}</td></tr>
+        <tr><td>Prime terrain</td><td style="color:var(--green)">Gain</td><td>${terrain.toLocaleString()}</td></tr>
+        <tr><td><strong>Total brut</strong></td><td></td><td><strong>${brut.toLocaleString()}</strong></td></tr>
+        <tr><td>Cotisation CNPS salarié (2.8%)</td><td style="color:var(--red)">Retenue</td><td>-${cnps.toLocaleString()}</td></tr>
+        <tr><td>IRPP estimé (3.5%)</td><td style="color:var(--red)">Retenue</td><td>-${irpp.toLocaleString()}</td></tr>
+      </tbody>
+    </table>
+    <div class="bull-total"><div><div class="bull-total-label">NET À PAYER</div><div style="font-size:0.72rem;color:var(--text3)">Versement UBA Cameroun</div></div><div class="bull-total-val">${net.toLocaleString()} XAF</div></div>
+    <div style="display:flex;gap:8px;margin-top:1rem;justify-content:flex-end">
+      <button class="btn-s btn-sm" onclick="showToast('Bulletin imprimé !')">🖨️ Imprimer</button>
+      <button class="btn-p btn-sm" onclick="showToast('Bulletin envoyé à ${nom.split(' ')[0]} !')">📧 Envoyer</button>
+    </div>`;
+}
+
+function renderContrats(){
+  const cl=document.getElementById('cont-list');
+  const al=document.getElementById('cont-alert-list');
+  if(!cl)return;
+  cl.innerHTML=CONTRATS.map(c=>{
+    const dl=c.fin==='—'?999:daysLeft(c.fin);
+    const dlClass=dl<0?'danger':dl<30?'danger':dl<60?'warn':'ok';
+    const dlTxt=dl===999?'CDI':dl<0?`Expiré il y a ${Math.abs(dl)}j`:`${dl}j restants`;
+    return`<div class="contract-card ${dl<30&&dl!==999?'expiring':dl<0?'expired':''}">
+      <div class="cc-top">
+        <div><div class="cc-name">${c.agent}</div><div class="cc-post">${c.poste} · ${badge(c.type,'bb')}</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="days-left ${dlClass}">${dlTxt}</div>
+          <button class="btn-s btn-sm" onclick="showToast('Contrat ${c.id} ouvert')">Voir</button>
+          ${dl<60&&dl!==999?`<button class="btn-p btn-sm" onclick="showToast('Renouvellement de ${c.agent.split(' ')[0]} initié !')">Renouveler</button>`:''}
+        </div>
+      </div>
+      <div class="cc-meta">
+        <span>Programme : <strong>${c.prog}</strong></span>
+        <span>Début : <strong>${c.debut}</strong></span>
+        <span>Fin : <strong>${c.fin}</strong></span>
+        <span>Salaire : <strong style="color:var(--green)">${c.salaire.toLocaleString()} XAF</strong></span>
+      </div>
+    </div>`;
+  }).join('');
+  if(al)al.innerHTML=CONTRATS.filter(c=>{const d=daysLeft(c.fin);return d!==999&&d<60}).map(c=>{
+    const dl=daysLeft(c.fin);const dlClass=dl<0?'danger':dl<30?'danger':'warn';
+    return`<div class="alert-card ${dl<30?'crit':'warn'}">
+      <div class="alert-icon">${dl<0?'🚨':'⚠️'}</div>
+      <div class="alert-body"><div class="alert-title">${c.agent} — ${c.type}</div><div class="alert-msg">${c.poste} · ${c.prog} · Expiration : ${c.fin} · ${dl<0?'EXPIRÉ':''+dl+' jours restants'}</div><div class="alert-time">${c.salaire.toLocaleString()} XAF/mois</div></div>
+      <button class="btn-p btn-sm" onclick="showToast('Renouvellement initié !')">Renouveler</button>
+    </div>`;
+  }).join('');
+  // type chart
+  const tc=document.getElementById('cont-type-chart');
+  const pc=document.getElementById('cont-prog-chart');
+  const types={};const progs={};
+  CONTRATS.forEach(c=>{types[c.type]=(types[c.type]||0)+1;progs[c.prog]=(progs[c.prog]||0)+1});
+  if(tc)tc.innerHTML=Object.entries(types).map(([k,v])=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px"><span style="color:var(--text2)">${k}</span><span style="font-weight:700;color:var(--text)">${v}</span></div><div class="prog"><div class="prog-f" style="width:${v/CONTRATS.length*100}%;background:var(--blue)"></div></div></div>`).join('');
+  if(pc)pc.innerHTML=Object.entries(progs).map(([k,v])=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px"><span style="color:var(--text2)">${k}</span><span style="font-weight:700;color:var(--text)">${v}</span></div><div class="prog"><div class="prog-f" style="width:${v/CONTRATS.length*100}%;background:var(--red)"></div></div></div>`).join('');
+}
+
+function renderEvals(){
+  const tb=document.getElementById('tb-perf');if(!tb)return;
+  tb.innerHTML=EVALS.map(e=>{
+    const sc=e.score;const cls=sc>=4.5?'bg':sc>=3.5?'bb':sc>=2.5?'ba':'br';
+    return`<tr>
+      <td><strong style="color:var(--text)">${e.agent}</strong></td>
+      <td style="font-size:0.78rem;color:var(--text3)">${e.poste}</td>
+      <td>${e.periode}</td><td style="font-size:0.78rem">${e.eval}</td>
+      <td>${badge(sc.toFixed(1)+'/5',cls)}</td>
+      <td>${renderStars(e.resultats)}</td>
+      <td>${renderStars(e.comportement)}</td>
+      <td>${renderStars(e.potentiel)}</td>
+      <td>${statBadge(e.statut)}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn-s btn-sm" onclick="showEvalFiche()">📋 Fiche</button>
+        ${e.statut==='En attente'?`<button class="btn-p btn-sm" onclick="showToast('Évaluation validée !')">✔</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+  // perf detail fiche
+  const pd=document.getElementById('perf-detail');
+  if(pd)pd.innerHTML=PERF_FICHE.map(p=>`
+    <div class="perf-row">
+      <div class="perf-label">${p.label}</div>
+      <div class="perf-track"><div class="perf-fill" style="width:${p.score}%;background:${p.score>=85?'var(--green)':p.score>=65?'var(--blue)':'var(--amber)'}"></div></div>
+      <div class="perf-val">${p.score}%</div>
+    </div>`).join('');
+  // perf dist
+  const dist=document.getElementById('perf-dist');
+  if(dist){
+    const ranges=[{l:'Excellent (≥4.5)',c:EVALS.filter(e=>e.score>=4.5).length,col:'var(--green)'},
+      {l:'Bon (3.5–4.4)',c:EVALS.filter(e=>e.score>=3.5&&e.score<4.5).length,col:'var(--blue)'},
+      {l:'Passable (2.5–3.4)',c:EVALS.filter(e=>e.score>=2.5&&e.score<3.5).length,col:'var(--amber)'},
+      {l:'Insuffisant (<2.5)',c:EVALS.filter(e=>e.score<2.5).length,col:'var(--red)'}];
+    dist.innerHTML=ranges.map(r=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:4px"><span style="color:var(--text2)">${r.l}</span><span style="font-weight:700;color:var(--text)">${r.c} agent${r.c>1?'s':''}</span></div><div class="prog"><div class="prog-f" style="width:${r.c/EVALS.length*100}%;background:${r.col}"></div></div></div>`).join('');
+  }
+  // top perf
+  const top=document.getElementById('top-perf');
+  if(top){
+    const sorted=[...EVALS].sort((a,b)=>b.score-a.score).slice(0,5);
+    top.innerHTML=sorted.map((e,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="width:28px;height:28px;border-radius:8px;background:${i===0?'var(--amber)':i===1?'var(--border2)':'var(--bg4)'};display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.82rem;color:${i<2?'var(--bg)':'var(--text3)'};flex-shrink:0">${i+1}</div>
+      <div style="flex:1"><div style="font-size:0.84rem;font-weight:600;color:var(--text)">${e.agent.split(' ').slice(-1)[0]}</div><div style="font-size:0.72rem;color:var(--text3)">${e.poste}</div></div>
+      <div style="font-family:serif;font-size:1.1rem;font-weight:800;color:${e.score>=4.5?'var(--green)':e.score>=3.5?'var(--blue)':'var(--amber)'}">${e.score.toFixed(1)}</div>
+    </div>`).join('');
+  }
+}
+
+function showEvalFiche(){
+  document.querySelectorAll('#page-performances .tabs .tab').forEach((t,i)=>t.classList.toggle('active',i===1));
+  ['tp-list','tp-fiche','tp-stats'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.style.display=i===1?'block':'none'});
+}
+
+function renderStars(val){
+  let s='<div class="stars">';
+  for(let i=1;i<=5;i++)s+=`<span class="star ${i<=Math.round(val)?'on':''}">★</span>`;
+  return s+'</div>';
+}
+
+function renderFormations(){
+  const tb=document.getElementById('tb-form');if(!tb)return;
+  tb.innerHTML=FORMATIONS.map(f=>`<tr>
+    <td><strong style="color:var(--text)">${f.nom}</strong></td>
+    <td>${badge(f.type,'bb')}</td>
+    <td style="font-size:0.78rem">${f.participants}</td>
+    <td style="font-size:0.78rem;color:var(--text3)">${f.dates}</td>
+    <td>${f.lieu}</td>
+    <td><strong style="color:var(--amber)">${f.budget.toLocaleString()} XAF</strong></td>
+    <td>${statBadge(f.statut)}</td>
+  </tr>`).join('');
+}
+
+function renderConges(){
+  const tb=document.getElementById('tb-conge');if(!tb)return;
+  tb.innerHTML=CONGES.map(c=>`<tr>
+    <td><strong style="color:var(--text)">${c.agent}</strong></td>
+    <td>${badge(c.type,'bc')}</td>
+    <td>${c.du}</td><td>${c.au}</td>
+    <td><strong>${c.jours}j</strong></td>
+    <td style="font-size:0.78rem;color:var(--text3)">${c.motif}</td>
+    <td>${statBadge(c.statut)}</td>
+    <td>${c.statut==='En attente'?`<div style="display:flex;gap:4px">
+      <button class="btn-p btn-sm" onclick="showToast('Congé validé !')">✔ Valider</button>
+      <button class="btn-s btn-sm" onclick="showToast('Refusé')">✕</button></div>`:'—'}
+    </td>
+  </tr>`).join('');
+}
+
+function renderIndemnites(){
+  const tb=document.getElementById('tb-indem');if(!tb)return;
+  tb.innerHTML=INDEMNITES.map(i=>`<tr>
+    <td><strong style="color:var(--text)">${i.agent}</strong></td>
+    <td>${i.prog}</td>
+    <td>${badge(i.type,'bc')}</td>
+    <td style="font-size:0.78rem">${i.zone}</td>
+    <td style="font-size:0.78rem;color:var(--text3)">${i.dates}</td>
+    <td>${i.jours}j</td>
+    <td><strong style="color:var(--green)">${i.montant.toLocaleString()} XAF</strong></td>
+    <td>${statBadge(i.statut)}</td>
+    <td>${i.statut==='En attente'?`<button class="btn-p btn-sm" onclick="showToast('Indemnité validée !')">✔ Valider</button>`:'—'}</td>
+  </tr>`).join('');
+}
+
+function renderAlertes(){
+  const al=document.getElementById('alert-list');if(!al)return;
+  al.innerHTML=ALERTS_DATA.map(a=>`
+    <div class="alert-card ${a.type}">
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-body" style="flex:1">
+        <div class="alert-title">${a.titre}</div>
+        <div class="alert-msg">${a.msg}</div>
+        <div class="alert-time">${a.time}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+        <button class="btn-p btn-sm" onclick="showToast('${a.action} en cours...')">${a.action}</button>
+        <button class="btn-s btn-sm" onclick="this.closest('.alert-card').style.opacity='0.4';showToast('Marqué comme lu')">✓ Lu</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderRecruit(){
+  const rc=document.getElementById('recruit-cards');if(!rc)return;
+  rc.innerHTML=RECRUIT.map(r=>`
+    <div class="card" style="border-left:3px solid var(--red)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+        <div>
+          <div style="font-family:var(--serif);font-size:1.1rem;font-weight:800;color:var(--text)">${r.poste}</div>
+          <div style="font-size:0.78rem;color:var(--text3);margin-top:4px">${r.prog} · ${r.site} · ${badge(r.type,'bb')}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:0.78rem;color:var(--text3)">Clôture candidatures</div>
+          <div style="font-weight:700;color:var(--amber)">${r.deadline}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:2rem;flex-wrap:wrap;font-size:0.82rem;margin-bottom:1rem">
+        <div><span style="color:var(--text3)">Candidatures reçues : </span><strong style="color:var(--text)">${r.candidats}</strong></div>
+        <div><span style="color:var(--text3)">Phase : </span><strong style="color:var(--text)">${r.phase}</strong></div>
+        <div><span style="color:var(--text3)">Budget : </span><strong style="color:var(--green)">${r.budget}</strong></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn-s btn-sm" onclick="showToast('Liste des candidats ouverte')">👥 Voir candidatures</button>
+        <button class="btn-p btn-sm" onclick="showToast('Entretiens planifiés !')">📅 Planifier entretiens</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderOrgChart(){
+  const w=document.getElementById('org-wrap');if(!w)return;
+  w.innerHTML=`
+    <div class="org-level">
+      <div class="org-node" onclick="showToast('Direction Générale ACMS')"><div class="on-icon">🏥</div><div class="on-name">Direction Générale</div><div class="on-role">ACMS Cameroun</div></div>
+    </div>
+    <div class="org-connector">│</div>
+    <div class="org-level">
+      <div class="org-node" onclick="showToast('Directeur RH : Dr. MVONDO Jean')"><div class="on-icon">👑</div><div class="on-name">Dr. MVONDO Jean</div><div class="on-role">Directeur RH</div></div>
+      <div class="org-node" onclick="showToast('Direction Financière')"><div class="on-icon">💰</div><div class="on-name">FOUDA Christine</div><div class="on-role">Comptable principale</div></div>
+      <div class="org-node" onclick="showToast('Conseillère Technique')"><div class="on-icon">🌍</div><div class="on-name">Dr. SMITH Amanda</div><div class="on-role">Conseillère Technique</div></div>
+    </div>
+    <div class="org-connector">│</div>
+    <div class="org-level">
+      <div class="org-node" style="border-color:rgba(232,71,63,0.4)" onclick="showToast('Chef Programme PASSR')"><div class="on-icon">📋</div><div class="on-name">MOUSSA Aïcha</div><div class="on-role">Chef Programme PASSR</div></div>
+      <div class="org-node" onclick="showToast('Chef Programme PASSR CoRD')"><div class="on-icon">📋</div><div class="on-name">NGONO Eric</div><div class="on-role">Data Analyst ProFam</div></div>
+      <div class="org-node" onclick="showToast('Logistique PASSR')"><div class="on-icon">🚛</div><div class="on-name">HAMADOU Yaya</div><div class="on-role">Logisticien</div></div>
+    </div>
+    <div class="org-connector">│</div>
+    <div class="org-level">
+      <div class="org-node" onclick="showToast('Consultant Data Entry PASSR')"><div class="on-icon">💻</div><div class="on-name">DEFNANI T. Mathieu</div><div class="on-role">Data Entry / MEAL</div></div>
+      <div class="org-node" onclick="showToast('Agent terrain')"><div class="on-icon">🏃</div><div class="on-name">BELLO Ibrahim</div><div class="on-role">Agent terrain PF</div></div>
+      <div class="org-node" onclick="showToast('Volontaire MEAL')"><div class="on-icon">🙋</div><div class="on-name">KAMGA Sarah</div><div class="on-role">Volontaire MEAL</div></div>
+    </div>`;
+}
+
+function renderDashboard(){
+  // cat chart
+  const cc=document.getElementById('cat-chart');if(cc){
+    const cats=[{n:'Salariés permanents',v:28,c:'var(--green)'},{n:'Consultants',v:38,c:'var(--blue)'},{n:'Volontaires',v:14,c:'var(--cyan)'},{n:'Expatriés',v:7,c:'var(--purple)'}];
+    cc.innerHTML=cats.map(c=>`<div style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px"><span style="color:var(--text2)">${c.n}</span><span style="font-weight:700;color:var(--text)">${c.v}</span></div><div class="prog"><div class="prog-f" style="width:${c.v/87*100}%;background:${c.c}"></div></div></div>`).join('');
+  }
+  // dash alerts
+  const da=document.getElementById('dash-alerts');if(da)da.innerHTML=ALERTS_DATA.slice(0,4).map(a=>`
+    <div class="alert-card ${a.type}" style="margin-bottom:8px;padding:0.75rem 1rem">
+      <div class="alert-icon" style="font-size:1rem">${a.icon}</div>
+      <div class="alert-body" style="flex:1"><div class="alert-title" style="font-size:0.82rem">${a.titre}</div><div class="alert-time">${a.time}</div></div>
+    </div>`).join('');
+  // dash contrats
+  const dc=document.getElementById('dash-contrats');if(dc){
+    const exp=CONTRATS.filter(c=>{const d=daysLeft(c.fin);return d!==999&&d<60}).slice(0,3);
+    dc.innerHTML=exp.map(c=>{const d=daysLeft(c.fin);return`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div style="flex:1"><div style="font-size:0.84rem;font-weight:600;color:var(--text)">${c.agent}</div><div style="font-size:0.74rem;color:var(--text3)">${c.type} · ${c.prog} · fin : ${c.fin}</div></div>
+        <div class="days-left ${d<30?'danger':'warn'}">${d}j</div>
+        <button class="btn-p btn-sm" onclick="showToast('Renouvellement initié !')">Renouveler</button>
+      </div>`}).join('');
+  }
+  // masse chart
+  const mc=document.getElementById('masse-chart');if(mc){
+    const progs=[{n:'PASSR',v:18200000,c:'var(--red)'},{n:'PASSR CoRD',v:12400000,c:'var(--blue)'},{n:'ProFam',v:4800000,c:'var(--green)'},{n:'Direction',v:3000000,c:'var(--purple)'}];
+    const max=Math.max(...progs.map(p=>p.v));
+    mc.innerHTML=`<div style="display:flex;align-items:flex-end;gap:14px;height:100px;margin-top:1rem">`+progs.map(p=>`
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:0.7rem;font-weight:700;color:var(--text)">${(p.v/1000000).toFixed(1)}M</div>
+        <div style="width:100%;height:${Math.round(p.v/max*80)}px;border-radius:6px 6px 0 0;background:${p.c}"></div>
+        <div style="font-size:0.68rem;color:var(--text3)">${p.n}</div>
+      </div>`).join('')+'</div>';
+  }
+}
+
+function renderHistChart(){
+  const el=document.getElementById('hist-chart');if(!el)return;
+  const mois=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  const vals=[35.2,35.8,36.1,36.4,38.4,37.9,38.2,38.8,39.1,39.4,40.0,0];
+  const max=Math.max(...vals.filter(v=>v>0));
+  el.innerHTML=`<div style="display:flex;align-items:flex-end;gap:6px;height:120px;margin-top:1rem">`+mois.map((m,i)=>`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+      ${vals[i]>0?`<div style="font-size:0.64rem;color:var(--text3)">${vals[i]}M</div><div style="width:100%;height:${Math.round(vals[i]/max*90)}px;border-radius:4px 4px 0 0;background:var(--red);opacity:${i===11?0.3:1}"></div>`:`<div style="width:100%;height:8px;border-radius:4px;background:var(--border2);border:1px dashed var(--border2)"></div>`}
+      <div style="font-size:0.64rem;color:var(--text3)">${m}</div>
+    </div>`).join('')+'</div>';
+}
+
+function renderDocs(){
+  const dp=document.getElementById('doc-pol');const dc=document.getElementById('doc-cont');
+  if(dp)dp.innerHTML=DOCS_POL.map(d=>`<div class="doc-card" onclick="showToast('${d.nom} ouvert')"><div class="doc-icon">${d.icon}</div><div><div class="doc-name">${d.nom}</div><div class="doc-meta">${d.meta}</div></div></div>`).join('');
+  if(dc)dc.innerHTML=DOCS_CONT.map(d=>`<div class="doc-card" onclick="showToast('${d.nom} téléchargé')"><div class="doc-icon">${d.icon}</div><div><div class="doc-name">${d.nom}</div><div class="doc-meta">${d.meta}</div></div></div>`).join('');
+}
+
+function renderEvalForm(){
+  const ef=document.getElementById('eval-form');if(!ef)return;
+  ef.innerHTML=PERF_CRITERIA.map(c=>`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;padding:8px;background:var(--bg3);border-radius:8px">
+      <div style="flex:1;font-size:0.82rem;color:var(--text2)">${c}</div>
+      <div style="display:flex;gap:4px">${[1,2,3,4,5].map(n=>`<button onclick="this.parentNode.querySelectorAll('button').forEach((b,i)=>b.style.background=i<${n}?'var(--amber)':'var(--bg4)');this.parentNode.querySelectorAll('button').forEach((b,i)=>b.style.color=i<${n}?'var(--bg)':'var(--text3)')" style="width:28px;height:28px;border-radius:6px;border:none;background:var(--bg4);color:var(--text3);font-size:0.9rem;cursor:pointer;transition:all 0.15s">★</button>`).join('')}</div>
+    </div>`).join('');
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────
+function initAll(){
+  renderDashboard();
+  renderPersonnel();
+  renderGrille();
+  renderPaie();
+  renderBulletinList();
+  renderContrats();
+  renderEvals();
+  renderFormations();
+  renderConges();
+  renderIndemnites();
+  renderAlertes();
+  renderRecruit();
+  renderOrgChart();
+  renderHistChart();
+  renderDocs();
+  renderEvalForm();
+}
+</script>
+</body>
+</html>
